@@ -20,11 +20,6 @@ def write_audio(file, data, sr, bits, _format='wav'):
   return soundfile.write(file, data, sr, subtype=subtype, format=_format)
 
 
-def read_audio(file, bits, _format='wav'):
-  subtype = {
-      8: 'PCM_S8',
-      16: 'PCM_16',
-      24: 'PCM_24'
-  }[bits]
-  data, sr = soundfile.read(file, subtype=subtype, format=_format)
+def read_audio(file):
+  data, sr = soundfile.read(file)
   return data, sr
