@@ -8,6 +8,42 @@ from utils import tf_tool
 from FLAGS import PARAM
 from dataManager import mixed_aishell_tfrecord_io as data_tool
 
+# trunc mag and dispersion to 0-1
+def norm_mag_spec(mag_spec):
+  mag_spec = tf.clip_by_value(mag_spec, PARAM.MAG_NORM_MIN, PARAM.MAG_NORM_MAX)
+  mag_spec -= PARAM.MAG_NORM_MIN
+  normed_mag = mag_spec / (PARAM.MAG_NORM_MAX - PARAM.MAG_NORM_MIN)
+  return normed_mag
+
+# add bias and logarithm to mag, dispersion to 0-1
+def norm_logmag_spec(mag_spec, log_bias):
+  logmag_spec = tf.log(mag_spec+tf.relu(log_bias)+0.5)/tf.log(10.0)
+  logmag_spec = tf.clip_by_global_norm(logmag_spec, PARAM.LOG_NORM_MIN, PARAM.LOG_NORM_MAX)
+  logmag_spec -= PARAM.LOG_NORM_MIN
+  normed_logmag = logmag_spec / (PARAM.LOG_NORM_MAX - PARAM.LOG_NORM_MIN)
+  return normed_logmag
+
+# Inverse process of norm_mag_spec()
+def rm_norm_mag_spec(normed_mag):
+  normed_mag *= (PARAM.MAG_NORM_MAX - PARAM.MAG_NORM_MIN)
+  mag_spec = normed_mag + PARAM.MAG_NORM_MIN
+  return mag_spec
+
+# Inverse process of norm_logmag_spec()
+def rm_norm_logmag_spec(normed_logmag, log_bias):
+  normed_logmag *= (PARAM.LOG_NORM_MAX - PARAM.LOG_NORM_MIN)
+  normed_logmag += PARAM.LOG_NORM_MIN
+  normed_logmag *= tf.log(10.0)
+  logmag_spec = tf.exp(normed_logmag) - 0.5 - tf.relu(log_bias)
+  return logmag_spec
+
+#
+def normedMag2normedLogmag(normed_mag, log_bias):
+  return norm_logmag_spec(rm_norm_mag_spec(normed_mag), log_bias)
+
+#
+def normedLogmag2normedMag(normed_logmag, log_bias):
+  return norm_mag_spec(rm_norm_logmag_spec(normed_logmag, log_bias))
 
 
 class SE_MODEL(object):
@@ -18,13 +54,15 @@ class SE_MODEL(object):
                theta_x_batch=None,
                theta_y_batch=None,
                infer=False):
+    self._log_bias = tf.get_variable('logbias', [1],
+                                     initializer=tf.constant_initializer(PARAM.INIT_LOG_BIAS))
     self._x_mag_spec = x_mag_spec_batch
     self._norm_x_mag_spec = norm_mag_spec(self._x_mag_spec)
-    self._norm_x_logmag_spec = norm_logmag_spec(self._x_mag_spec)
+    self._norm_x_logmag_spec = norm_logmag_spec(self._x_mag_spec, self._log_bias)
 
     self._y_mag_spec = y_mag_spec_batch
     self._norm_y_mag_spec = norm_mag_spec(self._y_mag_spec)
-    self._norm_y_logmag_spec = norm_logmag_spec(self._y_mag_spec)
+    self._norm_y_logmag_spec = norm_logmag_spec(self._y_mag_spec, self._log_bias)
 
     self._lengths = lengths_batch
 
@@ -117,7 +155,7 @@ class SE_MODEL(object):
       if PARAM.DECODING_MASK_POSITION == 'mag':
         self._cleaned = rm_norm_mag_spec(self._mask*self._norm_x_mag_spec)
       elif PARAM.DECODING_MASK_POSITION == 'logmag':
-        self._cleaned = rm_norm_logmag_spec(self._mask*self._norm_x_logmag_spec)
+        self._cleaned = rm_norm_logmag_spec(self._mask*self._norm_x_logmag_spec, self._log_bias)
       return
 
     if PARAM.TRAINING_MASK_POSITION == 'mag':
@@ -129,9 +167,9 @@ class SE_MODEL(object):
 
     if PARAM.TRAINING_MASK_POSITION != PARAM.LABEL_TYPE:
       if PARAM.LABEL_TYPE == 'mag':
-        self._cleaned = logmag2mag(self._cleaned)
+        self._cleaned = normedLogmag2normedMag(self._cleaned, self._log_bias)
       elif PARAM.LABEL_TYPE == 'logmag':
-        self._cleaned = mag2logmag(self._cleaned)
+        self._cleaned = normedMag2normedLogmag(self._cleaned, self._log_bias)
     self._loss = PARAM.LOSS_FUNC(self._cleaned,self._labels)
     if tf.get_variable_scope().reuse:
       return
