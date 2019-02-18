@@ -10,32 +10,37 @@ from dataManager import mixed_aishell_tfrecord_io as data_tool
 
 # trunc mag and dispersion to 0-1
 def norm_mag_spec(mag_spec):
-  mag_spec = tf.clip_by_value(mag_spec, PARAM.MAG_NORM_MIN, PARAM.MAG_NORM_MAX)
-  mag_spec -= PARAM.MAG_NORM_MIN
-  normed_mag = mag_spec / (PARAM.MAG_NORM_MAX - PARAM.MAG_NORM_MIN)
+  mag_spec = tf.clip_by_value(mag_spec, 0, PARAM.MAG_NORM_MAX)
+  normed_mag = mag_spec / (PARAM.MAG_NORM_MAX - 0)
   return normed_mag
 
 # add bias and logarithm to mag, dispersion to 0-1
 def norm_logmag_spec(mag_spec, log_bias):
+  LOG_NORM_MIN = tf.log(tf.relu(log_bias)+0.5) / tf.log(10.0)
+  LOG_NORM_MAX = tf.log(tf.relu(log_bias)+0.5+PARAM.MAG_NORM_MAX) / tf.log(10.0)
+
+  mag_spec = tf.clip_by_value(mag_spec, 0, PARAM.MAG_NORM_MAX)
   logmag_spec = tf.log(mag_spec+tf.relu(log_bias)+0.5)/tf.log(10.0)
-  logmag_spec = tf.clip_by_global_norm(logmag_spec, PARAM.LOG_NORM_MIN, PARAM.LOG_NORM_MAX)
-  logmag_spec -= PARAM.LOG_NORM_MIN
-  normed_logmag = logmag_spec / (PARAM.LOG_NORM_MAX - PARAM.LOG_NORM_MIN)
+  logmag_spec -= LOG_NORM_MIN
+  normed_logmag = logmag_spec / (LOG_NORM_MAX - LOG_NORM_MIN)
   return normed_logmag
 
 # Inverse process of norm_mag_spec()
 def rm_norm_mag_spec(normed_mag):
-  normed_mag *= (PARAM.MAG_NORM_MAX - PARAM.MAG_NORM_MIN)
-  mag_spec = normed_mag + PARAM.MAG_NORM_MIN
+  normed_mag *= (PARAM.MAG_NORM_MAX - 0)
+  mag_spec = normed_mag
   return mag_spec
 
 # Inverse process of norm_logmag_spec()
 def rm_norm_logmag_spec(normed_logmag, log_bias):
-  normed_logmag *= (PARAM.LOG_NORM_MAX - PARAM.LOG_NORM_MIN)
-  normed_logmag += PARAM.LOG_NORM_MIN
+  LOG_NORM_MIN = tf.log(tf.relu(log_bias)+0.5) / tf.log(10.0)
+  LOG_NORM_MAX = tf.log(tf.relu(log_bias)+0.5+PARAM.MAG_NORM_MAX) / tf.log(10.0)
+
+  normed_logmag *= (LOG_NORM_MAX - LOG_NORM_MIN)
+  normed_logmag += LOG_NORM_MIN
   normed_logmag *= tf.log(10.0)
-  logmag_spec = tf.exp(normed_logmag) - 0.5 - tf.relu(log_bias)
-  return logmag_spec
+  mag_spec = tf.exp(normed_logmag) - 0.5 - tf.relu(log_bias)
+  return mag_spec
 
 #
 def normedMag2normedLogmag(normed_mag, log_bias):
@@ -188,6 +193,10 @@ class SE_MODEL(object):
 
   def assign_lr(self, session, lr_value):
     session.run(self._lr_update, feed_dict={self._new_lr: lr_value})
+
+  @property
+  def log_bias(self):
+    return self._log_bias
 
   @property
   def cleaned(self):
