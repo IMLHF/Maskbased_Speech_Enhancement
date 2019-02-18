@@ -108,7 +108,10 @@ def _ini_data(wave_dir, noise_dir, out_dir):
 
 
 def _get_padad_waveData(file):
-  waveData, sr = audio_tool.read_audio(file, 16, 'wav')
+  waveData, sr = audio_tool.read_audio(file)
+  if(sr != PARAM.FS):
+    print("Audio samplerate error.")
+    exit(-1)
 
   while len(waveData) < PARAM.LEN_WAWE_PAD_TO:
     waveData = np.tile(waveData, 2)
@@ -224,6 +227,8 @@ def _gen_tfrecord_minprocess(
                           newshape=[-1, PARAM.INPUT_SIZE])
       Ytheta = np.reshape(np.array(X_Y_Xtheta_Ytheta[3], dtype=np.float32),
                           newshape=[-1, PARAM.OUTPUT_SIZE])
+      # print(np.mean(X),np.sqrt(np.var(X)),np.median(X),np.max(X),np.min(X))
+      # print(np.mean(X),np.sqrt(np.var(X)),np.median(X),np.max(Y),np.min(Y))
       input_features = [
           tf.train.Feature(float_list=tf.train.FloatList(value=input_))
           for input_ in X]
