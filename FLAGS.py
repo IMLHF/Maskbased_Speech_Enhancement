@@ -23,7 +23,7 @@ class C12:
   batch_size = 128
   learning_rate = 0.001
   start_halving_impr = 0.0003
-  resume_training = 'false'
+  resume_training = 'false' # set start_epoch = final model ID
   start_epoch = 0
   min_epochs = 10  # Min number of epochs to run trainer without halving.
   max_epochs = 50  # Max number of epochs to run trainer totally.
@@ -31,7 +31,6 @@ class C12:
   start_halving_impr = 0.003 # Halving when ralative loss is lower than start_halving_impr.
   end_halving_impr = 0.0005 # Stop when relative loss is lower than end_halving_impr.
   num_threads_processing_data = 16 # The num of threads to read tfrecords files.
-  decode_output_speaker_volume_amp = False # 放大降噪后的声音
   RESTORE_PHASE = 'GRIFFIN_LIM'  # 'MIXED','CLEANED','GRIFFIN_LIM'.
   GRIFFIN_ITERNUM = 50
   minibatch_size = 400  # batch num to show
@@ -40,7 +39,7 @@ class C12:
   NOISE_DIR = '/home/room/work/lhf/alldata/many_noise'
   DATA_DICT_DIR = '_data/mixed_aishell'
   # TFRECORDS_DIR = '/all_data/feature_tfrecords' # for docker
-  TFRECORDS_DIR = '/home/room/work/lhf/alldata/irm_data/feature_tfrecords_utt03s_irm'
+  TFRECORDS_DIR = '/home/room/work/lhf/alldata/irm_data/feature_tfrecords_utt03s_irm_span32767'
   GENERATE_TFRECORD = True
   PROCESS_NUM_GENERATE_TFERCORD = 16
   TFRECORDS_NUM = 160  # 提多少，后面设置MAX_TFRECORD_FILES_USED表示用多少
@@ -52,14 +51,16 @@ class C12:
   DATASET_NAMES = ['train', 'validation', 'test_cc']
   DATASET_SIZES = [600000, 18000, 100000]
 
-  INPUT_TYPE = 'mag' # 'mag' or 'logmag'
-  LABEL_TYPE = 'mag' # 'mag' or 'logmag'
-  TRAINING_MASK_POSITION = 'mag' # 'mag' or 'logmag'
+  INPUT_TYPE = 'logmag' # 'mag' or 'logmag'
+  LABEL_TYPE = 'logmag' # 'mag' or 'logmag'
+  TRAINING_MASK_POSITION = 'logmag' # 'mag' or 'logmag'
   DECODING_MASK_POSITION = 'mag' # 'mag' or 'logmag'
-  INIT_LOG_BIAS = 10
+  INIT_LOG_BIAS = 40.5
+  LOG_BIAS_TRAINABEL = False
   #LOG_NORM_MAX = log(LOG_BIAS+MAG_NORM_MAX)
   #LOG_NORM_MIN = log(LOG_BIAS)
-  MAG_NORM_MAX = 70
+  # MAG_NORM_MAX = 70
+  MAG_NORM_MAX = 1e6
   # MAG_NORM_MIN = 0
 
   AUDIO_VOLUME_AMP=False
@@ -72,3 +73,4 @@ class C12:
   MIN_COEF = 0
 
 PARAM = C12
+# print(PARAM.TRAINING_MASK_POSITION != PARAM.LABEL_TYPE)
