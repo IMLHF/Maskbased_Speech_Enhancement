@@ -16,11 +16,11 @@ def norm_mag_spec(mag_spec):
 
 # add bias and logarithm to mag, dispersion to 0-1
 def norm_logmag_spec(mag_spec, log_bias):
-  LOG_NORM_MIN = tf.log(tf.relu(log_bias)+0.5) / tf.log(10.0)
-  LOG_NORM_MAX = tf.log(tf.relu(log_bias)+0.5+PARAM.MAG_NORM_MAX) / tf.log(10.0)
+  LOG_NORM_MIN = tf.log(tf.nn.relu(log_bias)+0.5) / tf.log(10.0)
+  LOG_NORM_MAX = tf.log(tf.nn.relu(log_bias)+0.5+PARAM.MAG_NORM_MAX) / tf.log(10.0)
 
   mag_spec = tf.clip_by_value(mag_spec, 0, PARAM.MAG_NORM_MAX)
-  logmag_spec = tf.log(mag_spec+tf.relu(log_bias)+0.5)/tf.log(10.0)
+  logmag_spec = tf.log(mag_spec+tf.nn.relu(log_bias)+0.5)/tf.log(10.0)
   logmag_spec -= LOG_NORM_MIN
   normed_logmag = logmag_spec / (LOG_NORM_MAX - LOG_NORM_MIN)
   return normed_logmag
@@ -33,13 +33,13 @@ def rm_norm_mag_spec(normed_mag):
 
 # Inverse process of norm_logmag_spec()
 def rm_norm_logmag_spec(normed_logmag, log_bias):
-  LOG_NORM_MIN = tf.log(tf.relu(log_bias)+0.5) / tf.log(10.0)
-  LOG_NORM_MAX = tf.log(tf.relu(log_bias)+0.5+PARAM.MAG_NORM_MAX) / tf.log(10.0)
+  LOG_NORM_MIN = tf.log(tf.nn.relu(log_bias)+0.5) / tf.log(10.0)
+  LOG_NORM_MAX = tf.log(tf.nn.relu(log_bias)+0.5+PARAM.MAG_NORM_MAX) / tf.log(10.0)
 
   normed_logmag *= (LOG_NORM_MAX - LOG_NORM_MIN)
   normed_logmag += LOG_NORM_MIN
   normed_logmag *= tf.log(10.0)
-  mag_spec = tf.exp(normed_logmag) - 0.5 - tf.relu(log_bias)
+  mag_spec = tf.exp(normed_logmag) - 0.5 - tf.nn.relu(log_bias)
   return mag_spec
 
 #
@@ -59,15 +59,16 @@ class SE_MODEL(object):
                theta_x_batch=None,
                theta_y_batch=None,
                infer=False):
-    self._log_bias = tf.get_variable('logbias', [1],
+    self._log_bias = tf.get_variable('logbias', [1], trainable=False,
                                      initializer=tf.constant_initializer(PARAM.INIT_LOG_BIAS))
     self._x_mag_spec = x_mag_spec_batch
     self._norm_x_mag_spec = norm_mag_spec(self._x_mag_spec)
     self._norm_x_logmag_spec = norm_logmag_spec(self._x_mag_spec, self._log_bias)
 
-    self._y_mag_spec = y_mag_spec_batch
-    self._norm_y_mag_spec = norm_mag_spec(self._y_mag_spec)
-    self._norm_y_logmag_spec = norm_logmag_spec(self._y_mag_spec, self._log_bias)
+    if not infer:
+      self._y_mag_spec = y_mag_spec_batch
+      self._norm_y_mag_spec = norm_mag_spec(self._y_mag_spec)
+      self._norm_y_logmag_spec = norm_logmag_spec(self._y_mag_spec, self._log_bias)
 
     self._lengths = lengths_batch
 
