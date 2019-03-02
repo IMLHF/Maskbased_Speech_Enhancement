@@ -86,14 +86,14 @@ def train():
     # build model
     with tf.name_scope('model'):
       tr_model = SE_MODEL(x_batch_tr,
-                          y_batch_tr,
                           lengths_batch_tr,
+                          y_batch_tr,
                           Xtheta_batch_tr,
                           Ytheta_batch_tr)
       tf.get_variable_scope().reuse_variables()
       val_model = SE_MODEL(x_batch_val,
-                           y_batch_val,
                            lengths_batch_val,
+                           y_batch_val,
                            Xtheta_batch_val,
                            Ytheta_batch_val)
 

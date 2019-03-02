@@ -54,14 +54,15 @@ def normedLogmag2normedMag(normed_logmag, log_bias):
 class SE_MODEL(object):
   def __init__(self,
                x_mag_spec_batch,
-               y_mag_spec_batch,
                lengths_batch,
+               y_mag_spec_batch=None,
                theta_x_batch=None,
                theta_y_batch=None,
                infer=False):
-    self._log_bias = tf.get_variable('logbias', [1], trainable=False,
+    self._log_bias = tf.get_variable('logbias', [1], trainable=PARAM.LOG_BIAS_TRAINABEL,
                                      initializer=tf.constant_initializer(PARAM.INIT_LOG_BIAS))
-    self._x_mag_spec = x_mag_spec_batch
+    self._inputs = x_mag_spec_batch
+    self._x_mag_spec = self.inputs
     self._norm_x_mag_spec = norm_mag_spec(self._x_mag_spec)
     self._norm_x_logmag_spec = norm_logmag_spec(self._x_mag_spec, self._log_bias)
 
@@ -76,16 +77,17 @@ class SE_MODEL(object):
     self._model_type = PARAM.MODEL_TYPE
 
     if PARAM.INPUT_TYPE == 'mag':
-      self._inputs = self._norm_x_mag_spec
+      self.net_input = self._norm_x_mag_spec
     elif PARAM.INPUT_TYPE == 'logmag':
-      self._inputs = self._norm_x_logmag_spec
+      self.net_input = self._norm_x_logmag_spec
 
-    if PARAM.LABEL_TYPE == 'mag':
-      self._labels = self._norm_y_mag_spec
-    elif PARAM.LABEL_TYPE == 'logmag':
-      self._labels = self._norm_y_logmag_spec
+    if not infer:
+      if PARAM.LABEL_TYPE == 'mag':
+        self._labels = self._norm_y_mag_spec
+      elif PARAM.LABEL_TYPE == 'logmag':
+        self._labels = self._norm_y_logmag_spec
 
-    outputs = self._inputs
+    outputs = self.net_input
 
     def lstm_cell():
       return tf.contrib.rnn.LSTMCell(
@@ -213,7 +215,7 @@ class SE_MODEL(object):
 
   @property
   def mask(self):
-    return self._activations
+    return self._mask
 
   @property
   def lengths(self):
