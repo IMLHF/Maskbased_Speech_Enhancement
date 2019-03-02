@@ -54,7 +54,7 @@ class C12:
   INPUT_TYPE = 'logmag' # 'mag' or 'logmag'
   LABEL_TYPE = 'logmag' # 'mag' or 'logmag'
   TRAINING_MASK_POSITION = 'logmag' # 'mag' or 'logmag'
-  DECODING_MASK_POSITION = 'mag' # 'mag' or 'logmag'
+  DECODING_MASK_POSITION = 'logmag' # 'mag' or 'logmag'
   INIT_LOG_BIAS = 40.5
   LOG_BIAS_TRAINABEL = False
   #LOG_NORM_MAX = log(LOG_BIAS+MAG_NORM_MAX)
