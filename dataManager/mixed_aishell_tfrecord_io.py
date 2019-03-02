@@ -109,6 +109,7 @@ def _ini_data(wave_dir, noise_dir, out_dir):
 
 def _get_padad_waveData(file):
   waveData, sr = audio_tool.read_audio(file)
+  waveData *= 32767.0
   if(sr != PARAM.FS):
     print("Audio samplerate error.")
     exit(-1)
@@ -121,6 +122,7 @@ def _get_padad_waveData(file):
   waveData = waveData[wave_begin:wave_begin+PARAM.LEN_WAWE_PAD_TO]
 
   return waveData
+
 
 def _mix_wav_by_SNR(waveData, noise):
   # S = (speech+alpha*noise)/(1+alpha)
@@ -276,8 +278,9 @@ def generate_tfrecord(gen=True):
     os.makedirs(testcc_tfrecords_dir)
 
     gen_start_time = time.time()
+    pool = multiprocessing.Pool(PARAM.PROCESS_NUM_GENERATE_TFERCORD)
     for dataset_dir in dataset_dir_list:
-      start_time = time.time()
+      # start_time = time.time()
       dataset_index_list = None
       if dataset_dir[-2:] == 'in':
         # continue
@@ -296,7 +299,6 @@ def generate_tfrecord(gen=True):
       len_dataset = len(dataset_index_list)
       minprocess_utt_num = int(
           len_dataset/PARAM.TFRECORDS_NUM)
-      pool = multiprocessing.Pool(PARAM.PROCESS_NUM_GENERATE_TFERCORD)
       for i_process in range(PARAM.TFRECORDS_NUM):
         s_site = i_process*minprocess_utt_num
         e_site = s_site+minprocess_utt_num
@@ -314,11 +316,11 @@ def generate_tfrecord(gen=True):
         #                          e_site,
         #                          dataset_dir,
         #                          i_process)
-      pool.close()
-      pool.join()
 
-      print(dataset_dir+' set extraction over. cost time %06dS' %
-            (time.time()-start_time))
+      # print(dataset_dir+' set extraction over. cost time %06dS' %
+      #       (time.time()-start_time))
+    pool.close()
+    pool.join()
     print('Generate TFRecord over. cost time %06dS' %
           (time.time()-gen_start_time))
 
