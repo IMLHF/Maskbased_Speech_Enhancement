@@ -12,6 +12,7 @@ import wave
 import utils
 from utils import audio_tool
 from utils import spectrum_tool
+from numpy import linalg
 from FLAGS import PARAM
 
 FILE_NAME = __file__[max(__file__.rfind('/')+1, 0):__file__.rfind('.')]
@@ -127,11 +128,10 @@ def _get_padad_waveData(file):
 def _mix_wav_by_SNR(waveData, noise):
   # S = (speech+alpha*noise)/(1+alpha)
   snr = np.random.randint(PARAM.MIN_SNR, PARAM.MAX_SNR+1)
-  As = np.mean(waveData**2)
-  An = np.mean(noise**2)
+  As = linalg.norm(waveData)
+  An = linalg.norm(noise)
 
-  alpha_pow = As/(An*(10**(snr/10))) if An != 0 else 0
-  alpha = np.sqrt(alpha_pow)
+  alpha = As/(An*(10**(snr/10))) if An != 0 else 0
   waveMix = (waveData+alpha*noise)/(1.0+alpha)
   return waveMix
 
