@@ -13,7 +13,7 @@ from FLAGS import PARAM
 from utils import audio_tool
 
 
-def build_session(ckpt_dir=PARAM.CHECK_POINT):
+def build_session(ckpt_dir):
   g = tf.Graph()
   with g.as_default():
     with tf.device('/cpu:0'):
@@ -62,13 +62,17 @@ def decode_one_wav(sess, model, wavedata):
       })
 
   cleaned = np.array(cleaned)
-  cleaned_spec = utils.spectrum_tool.griffin_lim(cleaned, wavedata,
-                                                 PARAM.NFFT,
-                                                 PARAM.OVERLAP,
-                                                 PARAM.GRIFFIN_ITERNUM)
-
-  reY = utils.spectrum_tool.librosa_istft(
-      cleaned_spec, PARAM.NFFT, PARAM.OVERLAP)
+  if PARAM.RESTORE_PHASE == 'MIXED':
+    cleaned = cleaned*np.exp(1j*spectrum_tool.phase_spectrum_librosa_stft(wavedata,
+                                                                          PARAM.NFFT,
+                                                                          PARAM.OVERLAP))
+    reY = spectrum_tool.librosa_istft(cleaned, PARAM.NFFT, PARAM.OVERLAP)
+  elif PARAM.RESTORE_PHASE =='GRIFFIN_LIM':
+    reY = spectrum_tool.griffin_lim(cleaned,
+                                    PARAM.NFFT,
+                                    PARAM.OVERLAP,
+                                    PARAM.GRIFFIN_ITERNUM,
+                                    wavedata)
 
   # print(np.shape(mask), np.max(mask), np.min(mask))
   # print(np.shape(x_mag), np.max(x_mag), np.min(x_mag))
@@ -79,14 +83,26 @@ def decode_one_wav(sess, model, wavedata):
   return reY
 
 if __name__=='__main__':
-  waveData, sr = audio_tool.read_audio('../IRM_Speech_Enhancement/_decode_index/speech0_16k.wav')
-  waveData *= 32767.0
+  sess, model = build_session('nnet_C12_autobias')
 
-  sess, model = build_session()
-  reY = decode_one_wav(sess,model,waveData)
+  # waveData, sr = audio_tool.read_audio('speech5_16k.wav')
+  waveData, sr = audio_tool.read_audio('2_00_MIX_1_clapping.wav')
+  reY = decode_one_wav(sess,model,waveData*32767)/32767
+  utils.audio_tool.write_audio('2_00_MIX_1_clapping_en.wav',
+                               reY,
+                               sr,
+                               PARAM.AUDIO_BITS, 'wav')
 
-  reY /= 32767.0
-  utils.audio_tool.write_audio('restore_audio2.wav',
+  waveData, sr = audio_tool.read_audio('speech5_16k.wav')
+  reY = decode_one_wav(sess,model,waveData*32767)/32767
+  utils.audio_tool.write_audio('speech5_16k_en.wav',
+                               reY,
+                               sr,
+                               PARAM.AUDIO_BITS, 'wav')
+
+  waveData, sr = audio_tool.read_audio('speech0_16k.wav')
+  reY = decode_one_wav(sess,model,waveData*32767)/32767
+  utils.audio_tool.write_audio('speech0_16k_en.wav',
                                reY,
                                sr,
                                PARAM.AUDIO_BITS, 'wav')
