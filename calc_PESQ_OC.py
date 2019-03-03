@@ -61,12 +61,14 @@ def en_speech(noise_dir_name, speech_dir_name, name, snr, sess,model_):
     os.makedirs(mixed_waves_dir)
   else:
     shutil.rmtree(mixed_waves_dir)
+    os.makedirs(mixed_waves_dir)
 
   enhanced_waves_dir = 'exp/data_for_ac/enhanced_wav_'+name
   if not os.path.exists(enhanced_waves_dir):
     os.makedirs(enhanced_waves_dir)
   else:
     shutil.rmtree(enhanced_waves_dir)
+    os.makedirs(enhanced_waves_dir)
 
   for speech_dir in speech_dir_list:
     for noise_dir in noise_dir_list:
@@ -127,8 +129,10 @@ def getPESQ(name,clean_speech_dir,noise_num):
     # spec = spec ** 1.3
     # enhanced = spectrum_tool.librosa_istft(spec*np.exp(angle*1j),512,256)
 
-    score_raw = pesq(ref/np.max(np.abs(ref)), mixed/np.max(np.abs(mixed)), sr)
-    score_en = pesq(ref/np.max(np.abs(ref)), enhanced/np.max(np.abs(enhanced)), sr)
+    # score_raw = pesq(ref/np.max(np.abs(ref)), mixed/np.max(np.abs(mixed)), sr)
+    # score_en = pesq(ref/np.max(np.abs(ref)), enhanced/np.max(np.abs(enhanced)), sr)
+    score_raw = pesq(ref, mixed, sr)
+    score_en = pesq(ref, enhanced, sr)
     print(str(i % noise_num + 1)+"_score_raw, score_en:",score_raw, score_en)
     i+=1
     avg_score_raw += score_raw
