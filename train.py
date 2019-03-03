@@ -180,7 +180,7 @@ def train():
         best_path = ckpt_path
         msg = ("Train Iteration %03d: \n"
                "    Train.LOSS %.4f, lrate %e, Val.LOSS %.4f, log_bias %f,\n"
-               "    %s, ckpt(%s) saved, "
+               "    %s, ckpt(%s) saved,\n"
                "    EPOCH DURATION: %.2fs") % (
             epoch + 1,
             tr_loss, model_lr, val_loss, log_bias,
@@ -191,7 +191,7 @@ def train():
         tr_model.saver.restore(sess, best_path)
         msg = ("Train Iteration %03d: \n"
                "    Train.LOSS %.4f, lrate%e, Val.LOSS %.4f, log_bias %f,\n"
-               "    %s, ckpt(%s) abandoned, "
+               "    %s, ckpt(%s) abandoned,\n"
                "    EPOCH DURATION: %.2fs") % (
             epoch + 1,
             tr_loss, model_lr, val_loss, log_bias,
