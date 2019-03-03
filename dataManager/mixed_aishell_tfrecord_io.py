@@ -131,7 +131,7 @@ def _mix_wav_by_SNR(waveData, noise):
   As = linalg.norm(waveData)
   An = linalg.norm(noise)
 
-  alpha = As/(An*(10**(snr/10))) if An != 0 else 0
+  alpha = As/(An*(10**(snr/20))) if An != 0 else 0
   waveMix = (waveData+alpha*noise)/(1.0+alpha)
   return waveMix
 
