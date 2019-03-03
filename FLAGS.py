@@ -83,9 +83,9 @@ class CXX12(base_config): # 原名C12，使用对数谱输入和作为LOSS，增
   LABEL_TYPE = 'logmag'  # 'mag' or 'logmag'
   TRAINING_MASK_POSITION = 'logmag'  # 'mag' or 'logmag'
   DECODING_MASK_POSITION = TRAINING_MASK_POSITION
-  INIT_LOG_BIAS = 45.5
+  INIT_LOG_BIAS = 50-1e-10
   '''
-  iter15:
+  iter15 PESQ:
     avg_score_raw: 1.202100,
     avg_score_en: 2.341708,
     imp: 1.139608

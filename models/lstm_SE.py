@@ -8,7 +8,7 @@ from utils import tf_tool
 from FLAGS import PARAM
 from dataManager import mixed_aishell_tfrecord_io as data_tool
 
-DEFAULT_LOG_BIAS = 0.5
+DEFAULT_LOG_BIAS = 1e-10
 
 # trunc mag and dispersion to 0-1
 def norm_mag_spec(mag_spec):
