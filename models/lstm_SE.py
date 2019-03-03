@@ -8,6 +8,8 @@ from utils import tf_tool
 from FLAGS import PARAM
 from dataManager import mixed_aishell_tfrecord_io as data_tool
 
+DEFAULT_LOG_BIAS = 0.5
+
 # trunc mag and dispersion to 0-1
 def norm_mag_spec(mag_spec):
   mag_spec = tf.clip_by_value(mag_spec, 0, PARAM.MAG_NORM_MAX)
@@ -16,11 +18,11 @@ def norm_mag_spec(mag_spec):
 
 # add bias and logarithm to mag, dispersion to 0-1
 def norm_logmag_spec(mag_spec, log_bias):
-  LOG_NORM_MIN = tf.log(tf.nn.relu(log_bias)+0.5) / tf.log(10.0)
-  LOG_NORM_MAX = tf.log(tf.nn.relu(log_bias)+0.5+PARAM.MAG_NORM_MAX) / tf.log(10.0)
+  LOG_NORM_MIN = tf.log(tf.nn.relu(log_bias)+DEFAULT_LOG_BIAS) / tf.log(10.0)
+  LOG_NORM_MAX = tf.log(tf.nn.relu(log_bias)+DEFAULT_LOG_BIAS+PARAM.MAG_NORM_MAX) / tf.log(10.0)
 
   mag_spec = tf.clip_by_value(mag_spec, 0, PARAM.MAG_NORM_MAX)
-  logmag_spec = tf.log(mag_spec+tf.nn.relu(log_bias)+0.5)/tf.log(10.0)
+  logmag_spec = tf.log(mag_spec+tf.nn.relu(log_bias)+DEFAULT_LOG_BIAS)/tf.log(10.0)
   logmag_spec -= LOG_NORM_MIN
   normed_logmag = logmag_spec / (LOG_NORM_MAX - LOG_NORM_MIN)
   return normed_logmag
@@ -33,13 +35,13 @@ def rm_norm_mag_spec(normed_mag):
 
 # Inverse process of norm_logmag_spec()
 def rm_norm_logmag_spec(normed_logmag, log_bias):
-  LOG_NORM_MIN = tf.log(tf.nn.relu(log_bias)+0.5) / tf.log(10.0)
-  LOG_NORM_MAX = tf.log(tf.nn.relu(log_bias)+0.5+PARAM.MAG_NORM_MAX) / tf.log(10.0)
+  LOG_NORM_MIN = tf.log(tf.nn.relu(log_bias)+DEFAULT_LOG_BIAS) / tf.log(10.0)
+  LOG_NORM_MAX = tf.log(tf.nn.relu(log_bias)+DEFAULT_LOG_BIAS+PARAM.MAG_NORM_MAX) / tf.log(10.0)
 
   normed_logmag *= (LOG_NORM_MAX - LOG_NORM_MIN)
   normed_logmag += LOG_NORM_MIN
   normed_logmag *= tf.log(10.0)
-  mag_spec = tf.exp(normed_logmag) - 0.5 - tf.nn.relu(log_bias)
+  mag_spec = tf.exp(normed_logmag) - DEFAULT_LOG_BIAS - tf.nn.relu(log_bias)
   return mag_spec
 
 #
@@ -61,6 +63,7 @@ class SE_MODEL(object):
                infer=False):
     self._log_bias = tf.get_variable('logbias', [1], trainable=PARAM.LOG_BIAS_TRAINABEL,
                                      initializer=tf.constant_initializer(PARAM.INIT_LOG_BIAS))
+    self._real_logbias = self._log_bias + DEFAULT_LOG_BIAS
     self._inputs = x_mag_spec_batch
     self._x_mag_spec = self.inputs
     self._norm_x_mag_spec = norm_mag_spec(self._x_mag_spec)
@@ -199,7 +202,7 @@ class SE_MODEL(object):
 
   @property
   def log_bias(self):
-    return self._log_bias
+    return self._real_logbias
 
   @property
   def cleaned(self):
