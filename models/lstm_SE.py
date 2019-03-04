@@ -10,13 +10,13 @@ from dataManager import mixed_aishell_tfrecord_io as data_tool
 
 DEFAULT_LOG_BIAS = 1e-10
 
-# trunc mag and dispersion to 0-1
+# trunc mag and dispersion to [0,1]
 def norm_mag_spec(mag_spec):
   mag_spec = tf.clip_by_value(mag_spec, 0, PARAM.MAG_NORM_MAX)
   normed_mag = mag_spec / (PARAM.MAG_NORM_MAX - 0)
   return normed_mag
 
-# add bias and logarithm to mag, dispersion to 0-1
+# add bias and logarithm to mag, dispersion to [0,1]
 def norm_logmag_spec(mag_spec, log_bias):
   LOG_NORM_MIN = tf.log(tf.nn.relu(log_bias)+DEFAULT_LOG_BIAS) / tf.log(10.0)
   LOG_NORM_MAX = tf.log(tf.nn.relu(log_bias)+DEFAULT_LOG_BIAS+PARAM.MAG_NORM_MAX) / tf.log(10.0)
