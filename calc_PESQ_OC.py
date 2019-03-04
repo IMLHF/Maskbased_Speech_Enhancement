@@ -56,14 +56,14 @@ def en_speech(noise_dir_name, speech_dir_name, name, snr, sess,model_):
   # print(noise_dir_list)
   # print(speech_dir_list)
 
-  mixed_waves_dir = 'exp/data_for_ac/mixed_wav_'+name
+  mixed_waves_dir = 'exp/data_for_ac/'+name+'/mixed_wav'
   if not os.path.exists(mixed_waves_dir):
     os.makedirs(mixed_waves_dir)
   else:
     shutil.rmtree(mixed_waves_dir)
     os.makedirs(mixed_waves_dir)
 
-  enhanced_waves_dir = 'exp/data_for_ac/enhanced_wav_'+name
+  enhanced_waves_dir = 'exp/data_for_ac/'+name+'/enhanced_wav'
   if not os.path.exists(enhanced_waves_dir):
     os.makedirs(enhanced_waves_dir)
   else:
@@ -102,11 +102,11 @@ def getPESQ(name,clean_speech_dir,noise_num):
   clean_list = os.listdir(clean_waves_dir)
   clean_dir_list = [os.path.join(clean_waves_dir, clean_file) for clean_file in clean_list]
   clean_dir_list.sort()
-  enhanced_waves_dir = 'exp/data_for_ac/enhanced_wav_'+name
+  enhanced_waves_dir = 'exp/data_for_ac/'+name+'/enhanced_wav'
   enhanced_list = os.listdir(enhanced_waves_dir)
   enhanced_dir_list = [os.path.join(enhanced_waves_dir, enhanced_file) for enhanced_file in enhanced_list]
   enhanced_dir_list.sort()
-  mixed_waves_dir = 'exp/data_for_ac/mixed_wav_'+name
+  mixed_waves_dir = 'exp/data_for_ac/'+name+'/mixed_wav'
   mixed_list = os.listdir(mixed_waves_dir)
   mixed_dir_list = [os.path.join(mixed_waves_dir, mixed_file) for mixed_file in mixed_list]
   mixed_dir_list.sort()
@@ -140,24 +140,15 @@ def getPESQ(name,clean_speech_dir,noise_num):
 
   avg_score_raw /= len(clean_dir_list_long)
   avg_score_en /=len(clean_dir_list_long)
-  print('avg_score_raw: %f,\n avg_score_en: %f,\n imp: %f' % (avg_score_raw,
-                                                              avg_score_en,
-                                                              avg_score_en-avg_score_raw))
+  print('avg_score_raw: %f,\navg_score_en: %f,\nimp: %f' % (avg_score_raw,
+                                                            avg_score_en,
+                                                            avg_score_en-avg_score_raw))
 
 if __name__ == '__main__':
-  name = 'nnet_C12_autobias'
+  name = 'nnet_C001'
   sess, model_ = build_session(name)
-  # gen_clean_speech(sess,model_)
+  # gen_clean_speech(sess,model_) # 先去除refer语音的底噪
   # print('clean_speech_done')
-  noise_num = en_speech('noise_for_ac','speech_for_ac_en',name,0,sess,model_)
-  getPESQ(name,'speech_for_ac_en', noise_num)
-  '''
-  1.avg_score_raw, avg_score_en, imp: 1.2913035949071248 2.1986049314339957 0.907301336526871
-  2.avg_score_raw, avg_score_en, imp: 1.1287009169658024 2.3412196238835654 1.212518706917763
-  3.avg_score_raw, avg_score_en, imp: 1.340452253818512 2.04199156165123 0.7015393078327179
-  4.avg_score_raw, avg_score_en, imp: 1.1144961963097255 2.158374100923538 1.0438779046138127
-  6.avg_score_raw, avg_score_en, imp: 1.532411088546117 2.6044862866401672 1.0720751980940502
-  7.avg_score_raw, avg_score_en, imp: 0.8932820608218511 2.0912997126579285 1.1980176518360772
-  8.avg_score_raw, avg_score_en, imp: 1.1516178498665492 2.5598736008008323 1.408255750934283
-  9.avg_score_raw, avg_score_en, imp: 1.106548897922039 2.0718840062618256 0.9653351083397865
-  '''
+  noise_num = en_speech('noise_for_ac','speech_for_ac_en',name,0,sess,model_) # 生成增强结果
+  getPESQ(name,'speech_for_ac_en', noise_num) # 计算PESQ Imp
+
