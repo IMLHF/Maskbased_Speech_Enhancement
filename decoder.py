@@ -83,26 +83,25 @@ def decode_one_wav(sess, model, wavedata):
   return reY
 
 if __name__=='__main__':
-  sess, model = build_session('nnet_C12_autobias')
+  ckpt='nnet_C001' # don't forget to change FLAGS.PARAM
+  decode_ans_file = os.path.join(PARAM.SAVE_DIR,'decode_'+ckpt)
+  if not os.path.exists(decode_ans_file):
+    os.makedirs(decode_ans_file)
+  sess, model = build_session(ckpt)
 
-  # waveData, sr = audio_tool.read_audio('speech5_16k.wav')
-  waveData, sr = audio_tool.read_audio('2_00_MIX_1_clapping.wav')
-  reY = decode_one_wav(sess,model,waveData*32767)/32767
-  utils.audio_tool.write_audio('2_00_MIX_1_clapping_en.wav',
-                               reY,
-                               sr,
-                               PARAM.AUDIO_BITS, 'wav')
+  decode_file_list = ['../IRM_Speech_Enhancement/exp/data_for_ac/mixed_wav_c11_50_snr_0/2_00_MIX_1_clapping.wav',
+                      '../IRM_Speech_Enhancement/_decode_index/speech5_16k.wav',
+                      '../IRM_Speech_Enhancement/_decode_index/speech0_16k.wav',]
 
-  waveData, sr = audio_tool.read_audio('speech5_16k.wav')
-  reY = decode_one_wav(sess,model,waveData*32767)/32767
-  utils.audio_tool.write_audio('speech5_16k_en.wav',
-                               reY,
-                               sr,
-                               PARAM.AUDIO_BITS, 'wav')
+  for i, mixed_dir in enumerate(decode_file_list):
+    print(i+1,mixed_dir)
+    waveData, sr = audio_tool.read_audio(mixed_dir)
+    reY = decode_one_wav(sess,model,waveData*32767)/32767
+    utils.audio_tool.write_audio(os.path.join(decode_ans_file,
+                                              ('%3d_' % (i+1))+mixed_dir[mixed_dir.rfind('/')+1:]),
+                                 reY,
+                                 sr,
+                                 PARAM.AUDIO_BITS, 'wav')
 
-  waveData, sr = audio_tool.read_audio('speech0_16k.wav')
-  reY = decode_one_wav(sess,model,waveData*32767)/32767
-  utils.audio_tool.write_audio('speech0_16k_en.wav',
-                               reY,
-                               sr,
-                               PARAM.AUDIO_BITS, 'wav')
+
+
