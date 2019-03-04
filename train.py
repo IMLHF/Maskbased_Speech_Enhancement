@@ -10,6 +10,7 @@ from models.lstm_SE import SE_MODEL
 import wave
 import gc
 from FLAGS import PARAM
+from tensorflow.python import debug as tf_debug
 from dataManager.mixed_aishell_tfrecord_io import generate_tfrecord, get_batch_use_tfdata
 
 os.environ['CUDA_VISIBLE_DEVICES'] = sys.argv[1]
@@ -22,6 +23,7 @@ def train_one_epoch(sess, tr_model):
   stime = time.time()
   while True:
     try:
+      # sess = tf_debug.LocalCLIDebugWrapperSession(sess, ui_type='curses')
       _, loss, current_batchsize, log_bias, model_lr = sess.run(
           # [tr_model.train_op, tr_model.loss, tf.shape(tr_model.lengths)[0]])
           [tr_model.train_op,
