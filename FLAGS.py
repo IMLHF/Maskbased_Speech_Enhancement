@@ -17,7 +17,7 @@ class base_config:
   KEEP_PROB = 0.8
   RNN_LAYER = 2
   CLIP_NORM = 5.0
-  SAVE_DIR = 'exp/rnn_irm'
+  SAVE_DIR = 'exp/rnn_speech_enhancement'
   CHECK_POINT = None
 
   GPU_RAM_ALLOW_GROWTH = True
@@ -98,6 +98,16 @@ class C001(base_config): #
   LABEL_TYPE = 'mag'  # 'mag' or 'logmag'
   TRAINING_MASK_POSITION = 'mag'  # 'mag' or 'logmag'
   DECODING_MASK_POSITION = TRAINING_MASK_POSITION
+  '''
+  iter4 PESQ:
+    avg_score_raw: 1.202100,
+    avg_score_en: 2.237535,
+    imp: 1.035436
+  iter10 PESQ:
+    avg_score_raw: 1.202100,
+    avg_score_en: 2.324778,
+    imp: 1.122679
+  '''
 
 
 class C002(base_config):  #
