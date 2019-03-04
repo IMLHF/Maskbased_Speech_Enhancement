@@ -202,36 +202,81 @@ class SE_MODEL(object):
 
   @property
   def log_bias(self):
+    '''
+    description: logbias of log(x+logbias)
+    type: >0
+    dims: [1]
+    '''
     return self._real_logbias
 
   @property
   def cleaned(self):
+    '''
+    description: model outputs
+    type: enhanced spectrum
+    dims: [None,time,frequence]
+    '''
     return self._cleaned
 
   @property
   def inputs(self):
+    '''
+    description: model inputs
+    type: mixture spectrum
+    dims: [None,time,frequence]
+    '''
     return self._inputs
 
   @property
   def labels(self):
+    '''
+    description: trainning reference
+    type: clean spectrum
+    dims: [None,time,frequence]
+    '''
     return self._labels
 
   @property
   def mask(self):
+    '''
+    description: wiener filtering mat
+    type:
+    dims: same to spectrum
+    '''
     return self._mask
 
   @property
   def lengths(self):
+    '''
+    description: dynamic batch_size
+    type: an int number
+    dims: [1]
+    '''
     return self._lengths
 
   @property
   def lr(self):
+    '''
+    description: learning rate
+    type:
+    dims: [1]
+    '''
     return self._lr
 
   @property
   def loss(self):
+    '''
+    description: model loss
+    type:
+    dims: [1]
+    '''
     return self._loss
 
   @property
   def train_op(self):
+    '''
+    description: training operation node
+    type: tensorflow computation node
+    dims:
+    '''
     return self._train_op
