@@ -65,7 +65,7 @@ class base_config:
   #LOG_NORM_MAX = log(LOG_BIAS+MAG_NORM_MAX)
   #LOG_NORM_MIN = log(LOG_BIAS)
   # MAG_NORM_MAX = 70
-  MAG_NORM_MAX = 1e6
+  MAG_NORM_MAX = 5e5
   # MAG_NORM_MIN = 0
 
   AUDIO_VOLUME_AMP = False
