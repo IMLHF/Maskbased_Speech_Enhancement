@@ -171,8 +171,13 @@ class SE_MODEL(object):
       self._cleaned = self._mask*self._norm_x_mag_spec
     elif PARAM.TRAINING_MASK_POSITION == 'logmag':
       self._cleaned = self._mask*self._norm_x_logmag_spec
-    if PARAM.MASK_TYPE == 'PSIRM':
+    if PARAM.MASK_TYPE == 'PSM':
       self._labels *= tf.cos(theta_x_batch-theta_y_batch)
+    elif PARAM.MASK_TYPE == 'IRM':
+      pass
+    else:
+      tf.logging.error('Mask type error.')
+      exit(-1)
 
     if PARAM.TRAINING_MASK_POSITION != PARAM.LABEL_TYPE:
       if PARAM.LABEL_TYPE == 'mag':
