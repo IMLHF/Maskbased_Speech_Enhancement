@@ -118,6 +118,7 @@ def getPESQ(name,clean_speech_dir,noise_num):
 
   avg_score_raw = 0.0
   avg_score_en = 0.0
+  avg_score_imp = 0.0
   i=0
   for clean_wave, enhanced_wave, mixed_wave in zip(clean_dir_list_long, enhanced_dir_list, mixed_dir_list):
     ref, sr = sf.read(clean_wave)
@@ -137,12 +138,15 @@ def getPESQ(name,clean_speech_dir,noise_num):
     i+=1
     avg_score_raw += score_raw
     avg_score_en += score_en
+    avg_score_imp += (score_en - score_raw)
+
 
   avg_score_raw /= len(clean_dir_list_long)
   avg_score_en /=len(clean_dir_list_long)
+  avg_score_imp /=len(clean_dir_list_long)
   print('avg_score_raw: %f,\navg_score_en: %f,\nimp: %f' % (avg_score_raw,
                                                             avg_score_en,
-                                                            avg_score_en-avg_score_raw))
+                                                            avg_score_imp))
 
 if __name__ == '__main__':
   name = 'nnet_C001'
